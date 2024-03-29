@@ -7,6 +7,7 @@ import Kernel.GraphBuffer as GB
 matrix = [[]]
 timestamp = 0
 
+
 def Generate_DirectedGraph():
     # 创建有向图
     Graph = nx.DiGraph()
