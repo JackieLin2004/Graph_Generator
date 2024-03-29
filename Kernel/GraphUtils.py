@@ -7,4 +7,3 @@ def random_edges():
     v = random.randint(1, GB.MAX_NODE_SIZES)
     weight = random.randint(1, GB.MAX_WEIGHT)
     return u, v, weight
-
