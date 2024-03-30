@@ -1,4 +1,8 @@
-# Python语言设计与实践 第一次作业
+# Graph_Generator
+
+## Python语言设计与实践 第一次作业
+
+[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 
 ### 需求
 
@@ -9,6 +13,9 @@
 我们组本项目采用了无向图和有向图两种方式供用户选择，用`networkx`和`matplotlib`两个库来创建图，同时采用`xlsxwriter`将连接矩阵导出为Excel
 
 同时采用目前最新`PySide6`库来创建UI界面，并使用`qt_material`中的配置文件来美化界面
+
+### 环境
+`python`版本:3.11
 
 ### 项目框架的说明
 
