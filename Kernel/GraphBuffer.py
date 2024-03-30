@@ -1,3 +1,4 @@
+# 用来存u，v，w
 edges_buffer = []
 # 最大的结点数
 MAX_NODE_SIZES = 0
