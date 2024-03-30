@@ -1,0 +1,8 @@
+networkx
+matplotlib
+random
+time
+xlsxwriter
+sys
+PySide6
+qt_material
