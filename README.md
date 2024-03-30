@@ -22,10 +22,7 @@
 ````
 pip install networkx
 pip install matplotlib
-pip install random
-pip install time
 pip install xlsxwriter
-pip install sys
 pip install PySide6
 pip install qt_material
 ````
