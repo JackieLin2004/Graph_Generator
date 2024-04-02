@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'generator_ui.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.6.2
+## Created by: Qt User Interface Compiler version 6.6.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -15,11 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QHeaderView,
-    QLabel, QLineEdit, QPushButton, QRadioButton,
-    QSizePolicy, QTableWidget, QTableWidgetItem, QVBoxLayout,
-    QWidget)
-
+from PySide6.QtWidgets import (QApplication, QDockWidget, QGroupBox, QHBoxLayout,
+    QHeaderView, QLabel, QLineEdit, QPushButton,
+    QRadioButton, QSizePolicy, QTableWidget, QTableWidgetItem,
+    QVBoxLayout, QWidget)
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -179,11 +178,30 @@ class Ui_Form(object):
 
         self.horizontalLayout_7.addLayout(self.verticalLayout_5)
 
-        self.matrixTable = QTableWidget(Form)
+        self.dockWidget = QDockWidget(Form)
+        self.dockWidget.setObjectName(u"dockWidget")
+        self.dockWidget.setFeatures(QDockWidget.DockWidgetClosable|QDockWidget.DockWidgetFloatable|QDockWidget.DockWidgetMovable)
+        self.dockWidget.setAllowedAreas(Qt.RightDockWidgetArea)
+        self.dockWidgetContents_2 = QWidget()
+        self.dockWidgetContents_2.setObjectName(u"dockWidgetContents_2")
+        self.verticalLayout_6 = QVBoxLayout(self.dockWidgetContents_2)
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
+        self.widget_3 = QWidget(self.dockWidgetContents_2)
+        self.widget_3.setObjectName(u"widget_3")
+        self.horizontalLayout_9 = QHBoxLayout(self.widget_3)
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.matrixTable = QTableWidget(self.widget_3)
         self.matrixTable.setObjectName(u"matrixTable")
         self.matrixTable.setMaximumSize(QSize(600, 16777215))
 
-        self.horizontalLayout_7.addWidget(self.matrixTable)
+        self.horizontalLayout_9.addWidget(self.matrixTable)
+
+
+        self.verticalLayout_6.addWidget(self.widget_3)
+
+        self.dockWidget.setWidget(self.dockWidgetContents_2)
+
+        self.horizontalLayout_7.addWidget(self.dockWidget)
 
 
         self.horizontalLayout_8.addLayout(self.horizontalLayout_7)

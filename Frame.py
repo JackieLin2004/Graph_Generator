@@ -1,7 +1,7 @@
 import sys  # 导入 sys 模块，用于系统相关操作
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QImage
+from PySide6.QtGui import QPixmap, QImage, QGuiApplication
 from PySide6.QtWidgets import QWidget, QApplication, QTableWidgetItem, QHeaderView
 from generator_ui import Ui_Form  # 导入自动生成的界面文件中的 Ui_Form 类
 import Kernel.DirectedGraph as DAG
@@ -18,8 +18,18 @@ class Frame(QWidget, Ui_Form):
         self.setupUi(self)
         # 窗口标题
         self.setWindowTitle("Graph Generator")
+
+        # 获取当前窗口的大小
+        self.screen = QGuiApplication.primaryScreen().geometry()
+        # 把窗口的大小赋值给宽高
+        self.width, self.height = self.screen.width(), self.screen.height()
+        # 重新调整窗口大小
+        self.resize(self.width, self.height - 80)
+        # 校准，距离屏幕左上角的位置
+        self.move(0, 0)
+
         # 设置为全屏
-        self.showFullScreen()
+        # self.showFullScreen()
 
         # 输入结点和边数的文本框默认显示0
         self.node_num.setPlaceholderText('0')

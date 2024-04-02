@@ -267,13 +267,33 @@
       </layout>
      </item>
      <item>
-      <widget class="QTableWidget" name="matrixTable">
-       <property name="maximumSize">
-        <size>
-         <width>600</width>
-         <height>16777215</height>
-        </size>
+      <widget class="QDockWidget" name="dockWidget">
+       <property name="features">
+        <set>QDockWidget::DockWidgetClosable|QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
        </property>
+       <property name="allowedAreas">
+        <set>Qt::RightDockWidgetArea</set>
+       </property>
+       <widget class="QWidget" name="dockWidgetContents_2">
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <item>
+          <widget class="QWidget" name="widget_3" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_9">
+            <item>
+             <widget class="QTableWidget" name="matrixTable">
+              <property name="maximumSize">
+               <size>
+                <width>600</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </item>
     </layout>
