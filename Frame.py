@@ -197,6 +197,7 @@ def run():
     app = QApplication([])
     # 应用主题样式
     apply_stylesheet(app, theme='dark_lightgreen.xml')
+    # apply_stylesheet(app, theme='light_lightgreen.xml')
     # 创建主窗口对象
     window = Frame()
     # 显示主窗口
