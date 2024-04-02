@@ -6,3 +6,4 @@ xlsxwriter
 sys
 PySide6
 qt_material
+scipy
