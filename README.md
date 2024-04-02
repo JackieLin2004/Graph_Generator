@@ -26,16 +26,19 @@
 `xlsx`文件夹中存放生成的Excel文件，同样是以有向图和无向图进行分类存放
 
 `config.txt`中为本项目需要的所有配置，配置环境时可采用以下命令行安装库
-````
+```
 pip install networkx
 pip install matplotlib
 pip install xlsxwriter
 pip install PySide6
 pip install qt_material
-````
+```
 `Frame.py`为本项目的整体架构文件
 
-`generator_ui.py`为`generator_ui.ui`转成的`Python`文件，里面是UI界面的代码
+`generator_ui.py`为`generator_ui.ui`转成的`Python`文件，里面是UI界面的代码，通过以下命令转换：
+```
+pyside6-uic generator_ui.ui -o generator_ui.py
+```
 
 `main.py`文件运行`Frame.py`中的`run`函数，以此执行项目
 

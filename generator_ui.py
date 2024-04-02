@@ -192,7 +192,7 @@ class Ui_Form(object):
         self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
         self.matrixTable = QTableWidget(self.widget_3)
         self.matrixTable.setObjectName(u"matrixTable")
-        self.matrixTable.setMaximumSize(QSize(600, 16777215))
+        self.matrixTable.setMaximumSize(QSize(16777215, 16777215))
 
         self.horizontalLayout_9.addWidget(self.matrixTable)
 

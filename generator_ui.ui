@@ -283,7 +283,7 @@
              <widget class="QTableWidget" name="matrixTable">
               <property name="maximumSize">
                <size>
-                <width>600</width>
+                <width>16777215</width>
                 <height>16777215</height>
                </size>
               </property>
