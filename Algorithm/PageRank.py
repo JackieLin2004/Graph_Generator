@@ -1,64 +1,90 @@
+# matrix = [
+#     [0, 0, 0.5, 1],
+#     [0.5, 0, 0, 0],
+#     [0.5, 1, 0, 0],
+#     [0, 0, 0.5, 0]
+# ]
+# a = [0.25, 0.25, 0.25, 0.25]
+
 matrix = [
-    [0, 0, 0.5, 1],
-    [0.5, 0, 0, 0],
-    [0.5, 1, 0, 0],
-    [0, 0, 0.5, 0]
+    [0, 1, 1, 0],
+    [0, 0, 1, 0],
+    [1, 0, 0, 1],
+    [1, 0, 0, 0]
 ]
-a = [0.25, 0.25, 0.25, 0.25]
 
 
 # 这个类手动实现PageRank算法，与原生的比较
 class PageRank:
     # 传进来的 max_iter 表示迭代次数，默认传进来100次，已经足够收敛
+    # def __init__(self, max_iter, graph):
     def __init__(self, max_iter):
         self.max_iter = max_iter
+        self.MarkovMatrix = None
+        self.PR = None
+        # self.graph = graph
+
+    def construct_MarkovMatrix_PR(self):
+        global matrix
+        temp = matrix
+        # 初始化马尔科夫矩阵
+        self.MarkovMatrix = [[0.0 for _ in range(len(temp[0]))] for _ in range(len(temp))]
+        # 通过temp矩阵来转化为马尔科夫矩阵
+        for i in range(len(temp)):
+            cnt = 0
+            for j in range(len(temp[0])):
+                if temp[i][j] != 0:
+                    cnt += 1
+            for k in range(len(temp)):
+                if temp[i][k] != 0:
+                    self.MarkovMatrix[k][i] = 1 / cnt
+        # 构造PR矩阵
+        length = len(temp)
+        self.PR = [1 / length for _ in range(length)]
 
     # 由于下面三个方法没有使用类的实例属性或方法，所以添加装饰器@staticmethod设置为静态
     # 需要用到实例的时候把装饰器去掉即可
     # 原先的连接矩阵似乎不能很好的表示马尔科夫矩阵，所以很大概率是要把装饰器拿掉，加一个矩阵变量进来
-    @staticmethod
-    def DeadEnds():
-        global matrix
-        length = len(matrix)
+    # @staticmethod
+    def DeadEnds(self):
+        length = len(self.MarkovMatrix)
         for i in range(length):
             flag = True
             for j in range(length):
-                if matrix[j][i] != 0:
+                if self.MarkovMatrix[j][i] != 0:
                     flag = False
             if flag:
                 for k in range(length):
-                    matrix[k][i] = 1 / length
+                    self.MarkovMatrix[k][i] = 1 / length
 
-    @staticmethod
-    def SpiderTraps():
-        global matrix
-        length = len(matrix)
+    # @staticmethod
+    def SpiderTraps(self):
+        # length = len(matrix)
+        length = len(self.MarkovMatrix)
         beta = 0.85
         flag = False
         for i in range(length):
-            if matrix[i][i] != 0:
+            if self.MarkovMatrix[i][i] != 0:
                 flag = True
         if flag:
             for i in range(length):
                 for j in range(length):
-                    matrix[i][j] = beta * matrix[i][j] + (1 - beta) * (1 / length)
+                    self.MarkovMatrix[i][j] = beta * matrix[i][j] + (1 - beta) * (1 / length)
 
-    @staticmethod
-    def page_rank(n):
-        global matrix
-        length = len(matrix)
-        global a
+    # @staticmethod
+    def page_rank(self):
+        length = len(self.MarkovMatrix)
         tmp = [0] * length
-        for _ in range(n):
+        for _ in range(self.max_iter):
             for i in range(length):
                 for j in range(length):
-                    tmp[i] += matrix[i][j] * a[j]
-            a = tmp
+                    tmp[i] += self.MarkovMatrix[i][j] * self.PR[j]
+            self.PR = tmp
             tmp = [0] * length
 
         rank_point_val = []
         for i in range(length):
-            rank_point_val.append([0, chr(i + ord('a')), a[i]])
+            rank_point_val.append([0, chr(i + ord('a')), self.PR[i]])
 
         rank_point_val.sort(key=lambda x: x[2], reverse=True)
 
@@ -67,17 +93,18 @@ class PageRank:
 
         print(rank_point_val)
 
-    def run(self):
+    def run_PageRank_algorithm(self):
+        self.construct_MarkovMatrix_PR()
         self.DeadEnds()
         self.SpiderTraps()
-        self.page_rank(self.max_iter)
+        self.page_rank()
 
 
 def main():
     # 创建 PageRank 类的实例
     pagerank = PageRank(max_iter=100)
     # 调用 run_all 方法，依次调用三个函数
-    pagerank.run()
+    pagerank.run_PageRank_algorithm()
 
 
 if __name__ == '__main__':
