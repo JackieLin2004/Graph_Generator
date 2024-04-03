@@ -35,6 +35,7 @@ class PageRank:
             for j in range(len(temp[0])):
                 if temp[i][j] != 0:
                     cnt += 1
+            # 先求出原来连接矩阵不为0的个数，然后下面再顺便转置求马尔科夫矩阵
             for k in range(len(temp)):
                 if temp[i][k] != 0:
                     self.MarkovMatrix[k][i] = 1 / cnt
@@ -55,7 +56,7 @@ class PageRank:
                     flag = False
             if flag:
                 for k in range(length):
-                    self.MarkovMatrix[k][i] = 1 / length
+                    self.MarkovMatrix[k][i] += 1 / length
 
     # @staticmethod
     def SpiderTraps(self):
@@ -69,7 +70,7 @@ class PageRank:
         if flag:
             for i in range(length):
                 for j in range(length):
-                    self.MarkovMatrix[i][j] = beta * matrix[i][j] + (1 - beta) * (1 / length)
+                    self.MarkovMatrix[i][j] = beta * self.MarkovMatrix[i][j] + (1 - beta) * (1 / length)
 
     # @staticmethod
     def page_rank(self):

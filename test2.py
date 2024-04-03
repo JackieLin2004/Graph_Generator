@@ -14,6 +14,9 @@ print(matrix)
 print(temp)
 
 print(MarkovMatrix)
+print(len(MarkovMatrix))
+
+print(matrix + temp)
 
 for i in range(len(temp)):
     cnt = 0
