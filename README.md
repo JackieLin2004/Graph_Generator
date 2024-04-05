@@ -1,6 +1,6 @@
 # Graph_Generator
 
-## Python语言设计与实践 第一次作业
+## Python语言设计与实践 第一次项目
 
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 
@@ -48,7 +48,7 @@ pyside6-uic generator_ui.ui -o generator_ui.py
 ### 改进
 由于一开始原本的库只能支持最多200多个结点，临时改进，下载一个 `scipy` 库，就可以支持到1000个结点
 
-### 小组组员
+### 小组成员
 
 Lin Xiaoyi, Tang Jiajun, Wang Zhen, Chen Guanrui, Wang Jing
 

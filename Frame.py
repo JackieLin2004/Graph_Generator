@@ -1,206 +1,338 @@
-import sys  # 导入 sys 模块，用于系统相关操作
+import os
+import sys
+import time
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QPixmap, QImage, QGuiApplication
 from PySide6.QtWidgets import QWidget, QApplication, QTableWidgetItem, QHeaderView
-from generator_ui import Ui_Form  # 导入自动生成的界面文件中的 Ui_Form 类
+from generator_ui import Ui_Form
 import Kernel.DirectedGraph as DAG
 import Kernel.UndirectedGraph as UDG
 import Kernel.trans_to_xlsx as xlsx_writer
 import Kernel.GraphBuffer as GB
 import Kernel.GraphUtils as Utils
-from qt_material import apply_stylesheet  # 导入 qt_material 模块中的 apply_stylesheet 函数，用于美化界面
+import Kernel.DrawChart as DC
+import Kernel.PageRank as PG
+import Kernel.Algorithms as Algo
+from qt_material import apply_stylesheet
 
 
 class Frame(QWidget, Ui_Form):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        # 窗口标题
         self.setWindowTitle("Graph Generator")
-
-        # 获取当前窗口的大小
         self.screen = QGuiApplication.primaryScreen().geometry()
-        # 把窗口的大小赋值给宽高
         self.width, self.height = self.screen.width(), self.screen.height()
-        # 重新调整窗口大小
         self.resize(self.width, self.height - 80)
-        # 校准，距离屏幕左上角的位置
         self.move(0, 0)
-
-        # 设置为全屏
         # self.showFullScreen()
-
-        # 输入结点和边数的文本框默认显示0
         self.node_num.setPlaceholderText('0')
         self.edge_num.setPlaceholderText('0')
-        # 设置边列表的列数为3，即u，v，w 三列
+        self.start_point.setPlaceholderText('start point of the shortest path')
+        self.end_point.setPlaceholderText('end point of the shortest path')
         self.edgelistframe.setColumnCount(3)
-        self.titles = ['u', 'v', 'w']
-        # 设置边列表的表头标题，即u，v，w
-        self.edgelistframe.setHorizontalHeaderLabels(self.titles)
-
-        # 初始化表格行索引
+        self.edgelistframe.setHorizontalHeaderLabels(['u', 'v', 'w'])
+        self.PRtable.setColumnCount(2)
+        self.PRtable.setHorizontalHeaderLabels(['id', 'PR'])
         self.tableIndex = 0
-        # 设置视图中的图像居中显示
+        self.PRtableIndex = 0
         self.view.setAlignment(Qt.AlignCenter)
-        # 初始化图类型，默认为无向图
-        self.Gtype = 0
-        # 设置无向图按钮默认选中
         self.btn_UDG.setChecked(True)
-        # 设置边列表的表头自适应列宽
         self.edgelistframe.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        # 设置矩阵表格的表头自适应列宽
         self.matrixTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        # 绑定信号和槽
+        self.PRtable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.progressBar.setValue(0)
+        self.graph = GB.GraphBuffer()
+        self.UDGgen = UDG.UDGgenerator()
+        self.DAGgen = DAG.DAGgenerator()
+        self.pageR = PG.PageRank()
+        self.Xwriter = xlsx_writer.XlsxWriter()
+        self.setStyleSheet("QWidget {background-color:white;}")
+        self.edgelistframe.setStyleSheet(
+            "QHeaderView::section {background-color:white; border-color: darkgray;color: black;}")
+        self.matrixTable.setStyleSheet(
+            "QHeaderView::section {background-color:white; border-color: darkgray;color: black;}")
+        self.groupBox.setStyleSheet("QGroupBox:title{color:black;} QGroupBox{border-color:lightgray;}")
+
         self.bind()
 
-    # 绑定函数，统一绑定所有事件
     def bind(self):
-        # 绑定生成按钮点击事件
         self.btn_generate.clicked.connect(lambda: self.generate())
-        # 绑定添加边按钮点击事件
         self.btn_addEdge.clicked.connect(lambda: self.addEdge())
-        # 绑定删除边按钮点击事件
         self.btn_delEdge.clicked.connect(lambda: self.delEdge())
-        # 绑定确认图按钮点击事件
         self.btn_confirm.clicked.connect(lambda: self.confirmGraph())
-        # 绑定无向图按钮点击事件
         self.btn_UDG.clicked.connect(lambda: self.changeType(0))
-        # 绑定有向图按钮点击事件
         self.btn_DAG.clicked.connect(lambda: self.changeType(1))
-        # 绑定快速生成按钮点击事件
         self.btn_qspawn.clicked.connect(lambda: self.quickSpawn())
-        # 绑定退出按钮点击事件
         self.btn_exit.clicked.connect(lambda: self.exit())
+        self.btn_runSP.clicked.connect(lambda: self.runSPFA())
+        self.btn_nw.clicked.connect(lambda: self.turnNeg())
 
     def generate(self):
-        # 如果选择无向图
-        if self.Gtype == 0:
-            UDG.Generate_UndirectedGraph()
-            self.showPicture()
-            xlsx_writer.xw_to_excel(UDG.matrix, f'./xlsx/UndirectedGraph/xlsx_{UDG.timestamp}.xlsx')
+        self.clearPRTable()
+        if self.graph.Gtype == 0:
+            self.progressBar.setValue(10)
+            self.UDGgen.Generate_UndirectedGraph(self.graph)
+            self.progressBar.setValue(40)
+            self.showPic()
+            self.progressBar.setValue(60)
+            self.Xwriter.xw_to_excel(self.graph.matrix, f'./xlsx/UndirectedGraph/xlsx_{self.UDGgen.timestamp}.xlsx',
+                                     self.graph)
+            self.progressBar.setValue(70)
             self.showMatrixTable()
-        # 如果选择有向图
+            self.progressBar.setValue(80)
+            imp_time, lib_time = self.run_PR()
+            self.showPlotlyFig(['implemented', 'networkx library'], [imp_time, lib_time], 1, 2)
+            self.progressBar.setValue(90)
+            self.runFloyd()
+            self.progressBar.setValue(100)
+            self.progressBar.setValue(0)
         else:
-            DAG.Generate_DirectedGraph()
-            self.showPicture()
-            xlsx_writer.xw_to_excel(DAG.matrix, f'./xlsx/DirectedGraph/xlsx_{DAG.timestamp}.xlsx')
+            self.progressBar.setValue(10)
+            self.DAGgen.Generate_DirectedGraph(self.graph)
+            self.progressBar.setValue(40)
+            self.showPic()
+            self.progressBar.setValue(60)
+            self.Xwriter.xw_to_excel(self.graph.matrix, f'./xlsx/DirectedGraph/xlsx_{self.DAGgen.timestamp}.xlsx',
+                                     self.graph)
+            self.progressBar.setValue(70)
             self.showMatrixTable()
+            self.progressBar.setValue(80)
+            imp_time, lib_time = self.run_PR()
+            self.showPlotlyFig(['implemented', 'networkx library'], [imp_time, lib_time], 1, 2)
+            self.progressBar.setValue(90)
+            self.runFloyd()
+            self.progressBar.setValue(100)
+            self.progressBar.setValue(0)
 
-    # 有可能是已经生成了，重新改了再生成，所以要先清空
     def confirmGraph(self):
-        # 清除节点矩阵表格的行
-        for i in range(GB.MAX_NODE_SIZES, -1, -1):
-            self.matrixTable.removeRow(i)
-        # 清除节点矩阵表格的列
-        for i in range(GB.MAX_NODE_SIZES, -1, -1):
-            self.matrixTable.removeColumn(i)
-        # 清除边列表中的行
         for i in range(self.tableIndex, 0, -1):
             self.edgelistframe.removeRow(i - 1)
 
-        # 获取节点数输入框的值，如果为空则设置最大节点数量为0
+        self.clearMatrixTable()
+        self.clearPRTable()
+        self.clearFloydTable()
+
         if self.node_num.text() == '':
-            GB.MAX_NODE_SIZES = 0
+            self.graph.MAX_NODE_SIZES = 0
         else:
-            GB.MAX_NODE_SIZES = int(self.node_num.text())
-        # 清空边缓存
-        GB.edges_buffer = []
-        # 重置表格行索引
+            self.graph.MAX_NODE_SIZES = int(self.node_num.text())
+
+        self.graph.edges_buffer = []
         self.tableIndex = 0
 
     def addEdge(self):
-        # e是一个有uvw值的三元组
-        e = Utils.random_edges()
-        # 获取的三元组放进buffer
-        GB.edges_buffer.append(e)
-        # 创建 QTableWidgetItem 对象，并设置文本
+        e = Utils.random_edges(self.graph)
+        self.graph.edges_buffer.append(e)
         col1 = QTableWidgetItem(str(e[0]))
         col2 = QTableWidgetItem(str(e[1]))
         col3 = QTableWidgetItem(str(e[2]))
-        # 在边列表末尾插入一行
         self.edgelistframe.insertRow(int(self.edgelistframe.rowCount()))
-        # 设置边列表中当前行的项
         self.edgelistframe.setItem(self.tableIndex, 0, col1)
         self.edgelistframe.setItem(self.tableIndex, 1, col2)
         self.edgelistframe.setItem(self.tableIndex, 2, col3)
         self.tableIndex += 1
 
     def delEdge(self):
-        # 如果边缓存为空，则返回
-        if not GB.edges_buffer:
+        if not self.graph.edges_buffer:
             return
-        # 移除边列表中的最后一行
         self.edgelistframe.removeRow(self.tableIndex - 1)
         self.tableIndex -= 1
-        # 移除边缓存中的最后一项
-        GB.edges_buffer.pop()
+        self.graph.edges_buffer.pop()
 
-    def showPicture(self):
-        if self.Gtype == 0:
-            img = QImage(f"./images/UndirectedGraph/UDG_{UDG.timestamp}")
-            # 将 QImage 转换为 QPixmap,会更清晰一些
+    def showPic(self):
+        if self.graph.Gtype == 0:
+            img = QImage(f"./images/UndirectedGraph/UDG_{self.UDGgen.timestamp}")
             pixmap = QPixmap.fromImage(img)
-            # 在视图中显示图像
             self.view.setPixmap(pixmap)
         else:
-            img = QImage(f"./images/DirectedGraph/DAG_{DAG.timestamp}")
-            # 将 QImage 转换为 QPixmap,会更清晰一些
+            img = QImage(f"./images/DirectedGraph/DAG_{self.DAGgen.timestamp}")
             pixmap = QPixmap.fromImage(img)
-            # 在视图中显示图像
             self.view.setPixmap(pixmap)
 
     def showMatrixTable(self):
-        # 设置矩阵表格的行数
-        self.matrixTable.setRowCount(GB.MAX_NODE_SIZES)
-        # 设置矩阵表格的列数
-        self.matrixTable.setColumnCount(GB.MAX_NODE_SIZES)
-        # 清除矩阵表格内容
-        self.clearMatrixTable()
-        if self.Gtype == 0:
-            for pack in GB.edges_buffer:
-                # 在矩阵表格中设置对应的单元格，无向图为对称矩阵，需要设置两个
-                self.matrixTable.setItem(pack[0] - 1, pack[1] - 1, QTableWidgetItem(str(pack[2])))
-                self.matrixTable.setItem(pack[1] - 1, pack[0] - 1, QTableWidgetItem(str(pack[2])))
-        else:
-            for pack in GB.edges_buffer:
-                # 在矩阵表格中设置对应的单元格
-                self.matrixTable.setItem(pack[0] - 1, pack[1] - 1, QTableWidgetItem(str(pack[2])))
+        self.matrixTable.setRowCount(self.graph.MAX_NODE_SIZES)
+        self.matrixTable.setColumnCount(self.graph.MAX_NODE_SIZES)
+        self.matrixTable.clear()
+        for i in range(1, len(self.graph.matrix)):
+            for j in range(1, len(self.graph.matrix)):
+                self.matrixTable.setItem(i - 1, j - 1, QTableWidgetItem(str(self.graph.matrix[i][j])))
 
     def changeType(self, val):
-        # 切换图类型为指定值
-        self.Gtype = val
+        self.graph.Gtype = val
 
-    # 不一个个加边，而是快速生成
     def quickSpawn(self):
         if self.edge_num.text() == '':
-            GB.MAX_EDGE_SIZES = 0
+            self.graph.MAX_EDGE_SIZES = 0
         else:
-            GB.MAX_EDGE_SIZES = int(self.edge_num.text())
-        cnt = GB.MAX_EDGE_SIZES
-        # 循环调用加边函数进行加边
+            self.graph.MAX_EDGE_SIZES = int(self.edge_num.text())
+        cnt = self.graph.MAX_EDGE_SIZES
         for i in range(cnt):
             self.addEdge()
 
-    def clearMatrixTable(self):
-        # 清除矩阵表格内容
-        self.matrixTable.clear()
-
     def exit(self):
-        # 关闭窗口
         self.close()
+
+    def runSPFA(self):
+        st = self.start_point.text()
+        ed = self.end_point.text()
+        spfa = Algo.SPFA()
+        time_start = time.time()
+        sp = spfa.work(self.graph.matrix, st, ed)
+        time_end = time.time()
+        delay = time_end - time_start
+        self.progressBar.setValue(20)
+        if sp is not None:
+            if self.graph.Gtype == 1:
+                self.DAGgen.GenerateDAGShortestPathGraphic(self.graph, sp)
+            else:
+                self.UDGgen.GenerateUDGShortestPathGraphic(self.graph, sp)
+            lib_start_time = time.time()
+            libp = spfa.lib_Bellman_Ford_Algorithm(self.graph, st, ed)
+            lib_end_time = time.time()
+            lib_elapsed_time = lib_end_time - lib_start_time
+            self.showSPPic()
+            self.showPlotlyFig(['implemented', 'networks bellman_ford'], [delay, lib_elapsed_time], 1, 1)
+            text = 'nodes passed through: '
+            for i in range(len(sp)):
+                if i == len(sp) - 1:
+                    text += str(sp[i])
+                else:
+                    text += str(sp[i])
+                    text += ' -> '
+            self.SPFAreport.setText(text)
+        else:
+            self.SPFAreport.setText('Impossible!')
+
+        self.progressBar.setValue(100)
+        self.progressBar.setValue(0)
+
+    def showSPPic(self):
+        if self.graph.Gtype == 0:
+            img = QImage(f"./temp/UDG_SP")
+            pixmap = QPixmap.fromImage(img)
+            self.SPFAview.setPixmap(pixmap)
+        else:
+            img = QImage(f"./temp/DAG_SP")
+            pixmap = QPixmap.fromImage(img)
+            self.SPFAview.setPixmap(pixmap)
+
+    def runFloyd(self):
+        floyd = Algo.Floyd()
+        time_start = time.time()
+        dis_matrix = floyd.work(self.graph)
+        time_end = time.time()
+        delay = time_end - time_start
+        self.progressBar.setValue(20)
+        print(dis_matrix)
+        lib_start_time = time.time()
+        floyd.lib_Floyd_Algorithm(self.graph)
+        lib_end_time = time.time()
+        lib_elapsed_time = lib_end_time - lib_start_time
+        self.showPlotlyFig(['implemented', 'networks floyd'], [delay, lib_elapsed_time], 1, 4)
+        self.showFloydTable(dis_matrix)
+        self.progressBar.setValue(100)
+        self.progressBar.setValue(0)
+
+    def showFloydTable(self, dis_matrix):
+        self.floydTable.setRowCount(self.graph.MAX_NODE_SIZES)
+        self.floydTable.setColumnCount(self.graph.MAX_NODE_SIZES)
+        self.floydTable.clear()
+        for i in range(1, len(self.graph.matrix)):
+            for j in range(1, len(self.graph.matrix)):
+                self.floydTable.setItem(i - 1, j - 1, QTableWidgetItem(str(dis_matrix[i][j])))
+
+    def showPlotlyFig(self, x_coordinate, y_coordinate, fig_type, id, data=None):
+        dc = DC.DrawChart()
+        match fig_type:
+            case 1:
+                dc.drawBar(x_coordinate, y_coordinate, id)
+            case 2:
+                dc.drawScatter(x_coordinate, y_coordinate, id)
+            case _:
+                print('Invalid')
+
+        match id:
+            case 1:
+                self.SPFAStatistic.load(
+                    QUrl.fromLocalFile(os.path.abspath(f'./temp/plotly_bar{id}.html')))
+            case 2:
+                self.PRStatistic.load(
+                    QUrl.fromLocalFile(os.path.abspath(f'./temp/plotly_bar{id}.html')))
+            case 3:
+                self.webEngineView_3.load(
+                    QUrl.fromLocalFile(os.path.abspath(f'./temp/plotly_scatter{id}.html')))
+            case 4:
+                self.FloydStatistic.load(
+                    QUrl.fromLocalFile(os.path.abspath(f'./temp/plotly_bar{id}.html')))
+            case _:
+                print('Invalid')
+
+    def run_PR(self):
+        implemented_start_time = time.time()
+        rpv = self.pageR.run_Implemented_PageRank_algorithm(self.graph.matrix)
+        implemented_end_time = time.time()
+        implemented_elapsed_time = implemented_end_time - implemented_start_time
+        lib_start_time = time.time()
+        self.pageR.run_Lib_PageRank_algorithm(self.graph.matrix)
+        lib_end_time = time.time()
+        lib_elapsed_time = lib_end_time - lib_start_time
+        val = []
+        data = []
+        for i in range(len(rpv)):
+            val.append(rpv[i][2])
+        for i in range(len(rpv)):
+            data.append(rpv[i][1])
+        self.showPlotlyFig(list(range(1, len(rpv) + 1)), val, 2, 3)
+        for i in range(len(rpv)):
+            self.PRtable.insertRow(int(self.PRtable.rowCount()))
+            self.PRtable.setItem(self.PRtableIndex, 0, QTableWidgetItem(str(data[i])))
+            self.PRtable.setItem(self.PRtableIndex, 1, QTableWidgetItem(str(rpv[i][2])))
+            self.PRtableIndex += 1
+        return implemented_elapsed_time, lib_elapsed_time
+
+    def clearMatrixTable(self):
+        for i in range(self.graph.MAX_NODE_SIZES, -1, -1):
+            self.matrixTable.removeRow(i)
+        for i in range(self.graph.MAX_NODE_SIZES, -1, -1):
+            self.matrixTable.removeColumn(i)
+
+    def clearPRTable(self):
+        for i in range(self.PRtableIndex, 0, -1):
+            self.PRtable.removeRow(i - 1)
+        self.PRtableIndex = 0
+
+    def clearFloydTable(self):
+        for i in range(self.graph.MAX_NODE_SIZES, -1, -1):
+            self.floydTable.removeRow(i)
+        for i in range(self.graph.MAX_NODE_SIZES, -1, -1):
+            self.floydTable.removeColumn(i)
+
+    def turnNeg(self):
+        if self.btn_nw.isChecked():
+            self.graph.MIN_WEIGHT = -9
+        else:
+            self.graph.MIN_WEIGHT = 1
+
+    def __del__(self):
+        if os.path.exists('./temp/plotly_bar1.html'):
+            os.remove('./temp/plotly_bar1.html')
+        if os.path.exists('./temp/plotly_bar2.html'):
+            os.remove('./temp/plotly_bar2.html')
+        if os.path.exists('./temp/plotly_scatter3.html'):
+            os.remove('./temp/plotly_scatter3.html')
+        if os.path.exists('./temp/DAG_SP.png'):
+            os.remove('./temp/DAG_SP.png')
+        if os.path.exists('./temp/UDG_SP.png'):
+            os.remove('./temp/UDG_SP.png')
+        if os.path.exists('./temp/plotly_bar4.html'):
+            os.remove('./temp/plotly_bar4.html')
 
 
 def run():
-    # 创建应用程序对象
     app = QApplication([])
-    # 应用主题样式
-    apply_stylesheet(app, theme='dark_lightgreen.xml')
-    # apply_stylesheet(app, theme='light_lightgreen.xml')
-    # 创建主窗口对象
+    apply_stylesheet(app, theme='light_blue.xml')
     window = Frame()
-    # 显示主窗口
     window.show()
-    # 运行应用程序，直到应用程序退出
     sys.exit(app.exec_())

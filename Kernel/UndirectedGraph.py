@@ -2,54 +2,76 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import random
 import time  # 导入时间模块
-import Kernel.GraphBuffer as GB
-
-# 创建连接矩阵
-matrix = [[]]
-# 初始化时间戳为0
-timestamp = 0
 
 
-def Generate_UndirectedGraph():
-    # 创建无向图
-    Graph = nx.Graph()
-    global matrix
-    # 初始化把连接矩阵的值全部设为0
-    matrix = [[0 for _ in range(GB.MAX_NODE_SIZES + 1)] for _ in range(GB.MAX_NODE_SIZES + 1)]
+class UDGgenerator:
+    def __init__(self):
+        self.timestamp = 0
 
-    # 为结点创建一个整数范围
-    nodes = range(1, GB.MAX_NODE_SIZES + 1)
-    # 给图加边
-    Graph.add_nodes_from(nodes)
+    def Generate_UndirectedGraph(self, graph):
+        # 创建无向图
+        Graph = nx.Graph()
+        graph.matrix = [[0 for _ in range(graph.MAX_NODE_SIZES + 1)] for _ in range(graph.MAX_NODE_SIZES + 1)]
 
-    # buffer里面存的是pack，而pack里面存的是一个三元组
-    for pack in GB.edges_buffer:
-        u = pack[0]
-        v = pack[1]
-        w = pack[2]
-        # 如果边已存在，则不添加
-        if not Graph.has_edge(u, v):
-            Graph.add_edge(u, v)
-            Graph.add_edge(v, u)
-            matrix[u][v] = w
-            matrix[v][u] = w
+        nodes = range(1, graph.MAX_NODE_SIZES + 1)
+        Graph.add_nodes_from(nodes)
 
-    # 使用 spring layout来计算结点的布局，并将结果存在pos中
-    # 自定义 k 参数，参数k类似于弹簧的劲度系数，表现的是每个点之间的相对吸引力，越大距离越远
-    pos = nx.spring_layout(Graph, k=10)
+        for pack in graph.edges_buffer:
+            u = pack[0]
+            v = pack[1]
+            w = pack[2]
+            # 如果边已存在，则不添加
+            if not Graph.has_edge(u, v):
+                Graph.add_edge(u, v)
+                Graph.add_edge(v, u)
+                graph.matrix[u][v] = w
+                graph.matrix[v][u] = w
 
-    # 生成节点的随机浅色
-    node_colors = [(random.randint(100, 255) / 255, random.randint(100, 255) / 255, random.randint(100, 255) / 255) for
-                   _ in
-                   nodes]
+        # 使用 spring layout，并自定义 k 参数
+        pos = nx.spring_layout(Graph, k=10)  # 设置 k 参数
 
-    # 绘制无向图
-    nx.draw(Graph, pos, with_labels=True, node_color=node_colors, node_size=300, edge_color='grey', linewidths=1,
-            font_size=9)
+        # 生成节点的随机浅色
+        node_colors = [(random.randint(100, 255) / 255, random.randint(100, 255) / 255, random.randint(100, 255) / 255)
+                       for
+                       _ in
+                       nodes]
 
-    # 获取当前时间戳
-    global timestamp
-    timestamp = int(time.time())
-    # 保存图片到计算机，并使用时间戳命名
-    plt.savefig(f"./images/UndirectedGraph/UDG_{timestamp}.png")
-    plt.show()
+        # 绘制无向图
+        nx.draw(Graph, pos, with_labels=True, node_color=node_colors, node_size=300, edge_color='grey', linewidths=1,
+                font_size=9)
+
+        # 获取当前时间戳
+
+        self.timestamp = int(time.time())
+        # 保存图片到计算机，并使用时间戳命名
+        plt.savefig(f"./images/UndirectedGraph/UDG_{self.timestamp}.png")
+        plt.show()
+
+    def GenerateUDGShortestPathGraphic(self, graph, sp):
+        Graph = nx.Graph()
+        nodes = range(1, graph.MAX_NODE_SIZES + 1)
+        Graph.add_nodes_from(nodes)
+
+        for i in range(1, graph.MAX_NODE_SIZES + 1):
+            for j in range(1, graph.MAX_NODE_SIZES + 1):
+                if graph.matrix[i][j] != 0:
+                    Graph.add_edge(i, j)
+                    Graph.add_edge(j, i)
+
+        # 绘图
+        pos = nx.random_layout(Graph)
+        nx.draw(Graph, pos, with_labels=True, node_color='skyblue', node_size=300, edge_color='grey',
+                linewidths=1,
+                font_size=9)
+
+        # 标记最短路径上的边
+        for i in range(len(sp) - 1):
+            node1 = sp[i]
+            node2 = sp[i + 1]
+            nx.draw_networkx_edges(Graph, pos, edgelist=[(node1, node2)], edge_color='red', width=2,
+                                   connectionstyle='arc3, rad=0.1')
+
+        # 标记最短路径上的点
+        nx.draw_networkx_nodes(Graph, pos, nodelist=sp, node_color='red', node_size=300)
+        plt.savefig(f"./temp/UDG_SP.png")
+        plt.show()
