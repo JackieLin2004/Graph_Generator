@@ -70,8 +70,7 @@ class UDGgenerator:
         for i in range(len(sp) - 1):
             node1 = sp[i]
             node2 = sp[i + 1]
-            nx.draw_networkx_edges(Graph, pos, edgelist=[(node1, node2)], edge_color='red', width=2,
-                                   connectionstyle='arc3, rad=0.1')
+            nx.draw_networkx_edges(Graph, pos, edgelist=[(node1, node2)], edge_color='red', width=2)
 
         # 标记最短路径上的点
         nx.draw_networkx_nodes(Graph, pos, nodelist=sp, node_color='red', node_size=300)
