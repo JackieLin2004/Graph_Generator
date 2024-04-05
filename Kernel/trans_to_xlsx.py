@@ -1,8 +1,10 @@
 import xlsxwriter as xw
 
 
+# 导出为Excel的文件，并且也封装为类
 class XlsxWriter:
     def __init__(self):
+        # 创建一个空列表，用于存储列号
         self.col_num = []
 
     def xw_to_excel(self, data, filename, graph):
@@ -11,7 +13,10 @@ class XlsxWriter:
         self.col_num = []
         for i in range(1, m + 1):
             self.col_num.append(str(i))
+
+        # 创建一个 Excel 工作簿对象
         workbook = xw.Workbook(filename)
+        # 在工作簿中添加一个名为 'sheet1' 的工作表
         worksheet1 = workbook.add_worksheet('sheet1')
         worksheet1.activate()  # 表已经激活
         title = ['Generated Graph'] + self.col_num

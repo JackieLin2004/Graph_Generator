@@ -30,7 +30,7 @@ class UDGgenerator:
         # 使用 spring layout，并自定义 k 参数
         pos = nx.spring_layout(Graph, k=10)  # 设置 k 参数
 
-        # 生成节点的随机浅色
+        # 生成节点的随机浅色，颜色强度转为颜色通道比例
         node_colors = [(random.randint(100, 255) / 255, random.randint(100, 255) / 255, random.randint(100, 255) / 255)
                        for
                        _ in
@@ -47,7 +47,9 @@ class UDGgenerator:
         plt.savefig(f"./images/UndirectedGraph/UDG_{self.timestamp}.png")
         plt.show()
 
-    def GenerateUDGShortestPathGraphic(self, graph, sp):
+    # 绘制最短路的图
+    @staticmethod
+    def GenerateUDGShortestPathGraphic(graph, sp):
         Graph = nx.Graph()
         nodes = range(1, graph.MAX_NODE_SIZES + 1)
         Graph.add_nodes_from(nodes)

@@ -3,6 +3,7 @@ import networkx as nx
 from collections import deque
 
 
+# 手动实现FLOYD算法
 class Floyd:
     def __init__(self):
         self.dist = None
@@ -24,8 +25,10 @@ class Floyd:
 
         return self.dist
 
-    def lib_Floyd_Algorithm(self, graph):
-        G = None
+    # 原生库实现的floyd算法，用以做比较
+    @staticmethod
+    def lib_Floyd_Algorithm(graph):
+        # G = None
         if graph.Gtype == 0:
             G = nx.Graph()
         else:
@@ -40,6 +43,7 @@ class Floyd:
         return fwPath
 
 
+# 手动实现SPFA算法
 class SPFA:
     # 是bellman-ford算法的队列优化
     def __init__(self):
@@ -55,7 +59,7 @@ class SPFA:
                 if matrix[i][j] != 0:
                     t = matrix[i][j]
                     g[i].append([j, t])
-        path = [-1] * n  # Added path array with initial value -1
+        path = [-1] * n
         INF = 0x3f3f3f3f
         dist = [INF] * n
         dist[st] = 0
@@ -66,10 +70,10 @@ class SPFA:
         while q:
             t = q.popleft()
             vis[t] = False
-            for y, w in g[t]:  # Directly unpacking the tuple
+            for y, w in g[t]:
                 if dist[y] > dist[t] + w:
                     dist[y] = dist[t] + w
-                    path[y] = t  # Storing the predecessor of y
+                    path[y] = t
                     if not vis[y]:
                         vis[y] = True
                         q.append(y)
@@ -82,16 +86,18 @@ class SPFA:
             return self.Tpath
 
     def search_path(self, path, end):
-        if path[end] == -1:  # If there's no predecessor, it's the start node
+        if path[end] == -1:
             self.Tpath.append(end)
             return
-        self.search_path(path, path[end])  # Recursively print predecessors
+        self.search_path(path, path[end])
         self.Tpath.append(end)
 
-    def lib_Bellman_Ford_Algorithm(self, graph, st, ed):
+    # 原生库实现的bellman-ford算法，用以做比较
+    @staticmethod
+    def lib_Bellman_Ford_Algorithm(graph, st, ed):
         st = int(st)
         ed = int(ed)
-        G = None
+        # G = None
         if graph.Gtype == 0:
             G = nx.Graph()
         else:

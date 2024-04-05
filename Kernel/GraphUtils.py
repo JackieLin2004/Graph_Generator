@@ -1,6 +1,7 @@
 import random
 
 
+# 随机选取出点和入点，并随机生成权重
 def random_edges(graph):
     u = 0
     v = 0

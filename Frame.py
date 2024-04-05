@@ -36,7 +36,7 @@ class Frame(QWidget, Ui_Form):
         self.PRtable.setColumnCount(2)
         self.PRtable.setHorizontalHeaderLabels(['id', 'PR'])
         self.tableIndex = 0
-        self.PRtableIndex = 0
+        self.PR_tableIndex = 0
         self.view.setAlignment(Qt.AlignCenter)
         self.btn_UDG.setChecked(True)
         self.edgelistframe.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
@@ -57,6 +57,7 @@ class Frame(QWidget, Ui_Form):
 
         self.bind()
 
+    # 绑定函数
     def bind(self):
         self.btn_generate.clicked.connect(lambda: self.generate())
         self.btn_addEdge.clicked.connect(lambda: self.addEdge())
@@ -189,7 +190,7 @@ class Frame(QWidget, Ui_Form):
             else:
                 self.UDGgen.GenerateUDGShortestPathGraphic(self.graph, sp)
             lib_start_time = time.time()
-            libp = spfa.lib_Bellman_Ford_Algorithm(self.graph, st, ed)
+            spfa.lib_Bellman_Ford_Algorithm(self.graph, st, ed)
             lib_end_time = time.time()
             lib_elapsed_time = lib_end_time - lib_start_time
             self.showSPPic()
@@ -243,7 +244,7 @@ class Frame(QWidget, Ui_Form):
             for j in range(1, len(self.graph.matrix)):
                 self.floydTable.setItem(i - 1, j - 1, QTableWidgetItem(str(dis_matrix[i][j])))
 
-    def showPlotlyFig(self, x_coordinate, y_coordinate, fig_type, id, data=None):
+    def showPlotlyFig(self, x_coordinate, y_coordinate, fig_type, id):
         dc = DC.DrawChart()
         match fig_type:
             case 1:
@@ -287,9 +288,9 @@ class Frame(QWidget, Ui_Form):
         self.showPlotlyFig(list(range(1, len(rpv) + 1)), val, 2, 3)
         for i in range(len(rpv)):
             self.PRtable.insertRow(int(self.PRtable.rowCount()))
-            self.PRtable.setItem(self.PRtableIndex, 0, QTableWidgetItem(str(data[i])))
-            self.PRtable.setItem(self.PRtableIndex, 1, QTableWidgetItem(str(rpv[i][2])))
-            self.PRtableIndex += 1
+            self.PRtable.setItem(self.PR_tableIndex, 0, QTableWidgetItem(str(data[i])))
+            self.PRtable.setItem(self.PR_tableIndex, 1, QTableWidgetItem(str(rpv[i][2])))
+            self.PR_tableIndex += 1
         return implemented_elapsed_time, lib_elapsed_time
 
     def clearMatrixTable(self):
@@ -299,9 +300,9 @@ class Frame(QWidget, Ui_Form):
             self.matrixTable.removeColumn(i)
 
     def clearPRTable(self):
-        for i in range(self.PRtableIndex, 0, -1):
+        for i in range(self.PR_tableIndex, 0, -1):
             self.PRtable.removeRow(i - 1)
-        self.PRtableIndex = 0
+        self.PR_tableIndex = 0
 
     def clearFloydTable(self):
         for i in range(self.graph.MAX_NODE_SIZES, -1, -1):
@@ -315,6 +316,7 @@ class Frame(QWidget, Ui_Form):
         else:
             self.graph.MIN_WEIGHT = 1
 
+    # 析构函数，每次结束都删除这些冗余的html文件
     def __del__(self):
         if os.path.exists('./temp/plotly_bar1.html'):
             os.remove('./temp/plotly_bar1.html')
