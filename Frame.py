@@ -225,16 +225,12 @@ class Frame(QWidget, Ui_Form):
         dis_matrix = floyd.work(self.graph)
         time_end = time.time()
         delay = time_end - time_start
-        self.progressBar.setValue(20)
-        print(dis_matrix)
         lib_start_time = time.time()
         floyd.lib_Floyd_Algorithm(self.graph)
         lib_end_time = time.time()
         lib_elapsed_time = lib_end_time - lib_start_time
         self.showPlotlyFig(['implemented', 'networks floyd'], [delay, lib_elapsed_time], 1, 4)
         self.showFloydTable(dis_matrix)
-        self.progressBar.setValue(100)
-        self.progressBar.setValue(0)
 
     def showFloydTable(self, dis_matrix):
         self.floydTable.setRowCount(self.graph.MAX_NODE_SIZES)
@@ -244,13 +240,13 @@ class Frame(QWidget, Ui_Form):
             for j in range(1, len(self.graph.matrix)):
                 self.floydTable.setItem(i - 1, j - 1, QTableWidgetItem(str(dis_matrix[i][j])))
 
-    def showPlotlyFig(self, x_coordinate, y_coordinate, fig_type, id):
+    def showPlotlyFig(self, x_coordinate, y_coordinate, fig_type, id, data=None):
         dc = DC.DrawChart()
         match fig_type:
             case 1:
                 dc.drawBar(x_coordinate, y_coordinate, id)
             case 2:
-                dc.drawScatter(x_coordinate, y_coordinate, id)
+                dc.drawScatter(x_coordinate, y_coordinate, id, data)
             case _:
                 print('Invalid')
 
@@ -285,7 +281,7 @@ class Frame(QWidget, Ui_Form):
             val.append(rpv[i][2])
         for i in range(len(rpv)):
             data.append(rpv[i][1])
-        self.showPlotlyFig(list(range(1, len(rpv) + 1)), val, 2, 3)
+        self.showPlotlyFig(list(range(1, len(rpv) + 1)), val, 2, 3, data)
         for i in range(len(rpv)):
             self.PRtable.insertRow(int(self.PRtable.rowCount()))
             self.PRtable.setItem(self.PR_tableIndex, 0, QTableWidgetItem(str(data[i])))
