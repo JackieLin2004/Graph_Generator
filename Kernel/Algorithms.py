@@ -56,34 +56,47 @@ class SPFA:
         g = [[] for _ in range(n)]
         for i in range(1, n):
             for j in range(1, n):
-                if matrix[i][j] != 0:
-                    t = matrix[i][j]
-                    g[i].append([j, t])
+                if matrix[i][j] != 0 and i != j:
+                    g[i].append([j, matrix[i][j]])
+
         path = [-1] * n
-        INF = 0x3f3f3f3f
-        dist = [INF] * n
-        dist[st] = 0
+        INF = math.inf
+        dis = [INF] * n
+        q = deque()
         vis = [False] * n
-        q = deque([st])
+        cnt = [0] * n
+
+        dis[st] = 0
+        q.append(st)
         vis[st] = True
+        cnt[st] = 1
+        # 判断负环
+        flag = True
 
         while q:
-            t = q.popleft()
-            vis[t] = False
-            for y, w in g[t]:
-                if dist[y] > dist[t] + w:
-                    dist[y] = dist[t] + w
-                    path[y] = t
-                    if not vis[y]:
-                        vis[y] = True
-                        q.append(y)
+            u = q.popleft()
+            vis[u] = False
+            for v, w in g[u]:
+                if dis[v] > dis[u] + w:
+                    dis[v] = dis[u] + w
+                    if not vis[v]:
+                        cnt[v] += 1
+                        q.append(v)
+                        vis[v] = True
+                        path[v] = u
+                        if cnt[v] >= n - 1:
+                            flag = False
+                            break
+            if not flag:
+                break
 
-        if dist[ed] == INF:
-            print('impossible')
-            return None
+        if dis[ed] == INF:
+            return 0, None
+        elif not flag:
+            return 1, None
         else:
             self.search_path(path, ed)
-            return self.Tpath
+            return 2, self.Tpath
 
     def search_path(self, path, end):
         if path[end] == -1:

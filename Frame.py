@@ -180,17 +180,22 @@ class Frame(QWidget, Ui_Form):
         ed = self.end_point.text()
         spfa = Algo.SPFA()
         time_start = time.time()
-        sp = spfa.work(self.graph.matrix, st, ed)
+        chk, sp = spfa.work(self.graph.matrix, st, ed)
         time_end = time.time()
         delay = time_end - time_start
         self.progressBar.setValue(20)
-        if sp is not None:
+        if chk == 2:
             if self.graph.Gtype == 1:
                 self.DAGgen.GenerateDAGShortestPathGraphic(self.graph, sp)
             else:
                 self.UDGgen.GenerateUDGShortestPathGraphic(self.graph, sp)
             lib_start_time = time.time()
-            spfa.lib_Bellman_Ford_Algorithm(self.graph, st, ed)
+            try:
+                libp = spfa.lib_Bellman_Ford_Algorithm(self.graph, st, ed)
+            except Exception as e:
+                self.SPFAreport.setText('Neg Ring DETECTED!')
+                self.progressBar.setValue(100)
+                self.progressBar.setValue(0)
             lib_end_time = time.time()
             lib_elapsed_time = lib_end_time - lib_start_time
             self.showSPPic()
@@ -203,9 +208,10 @@ class Frame(QWidget, Ui_Form):
                     text += str(sp[i])
                     text += ' -> '
             self.SPFAreport.setText(text)
-        else:
+        elif chk == 0:
             self.SPFAreport.setText('Impossible!')
-
+        else:
+            self.SPFAreport.setText('Neg Ring DETECTED!')
         self.progressBar.setValue(100)
         self.progressBar.setValue(0)
 
