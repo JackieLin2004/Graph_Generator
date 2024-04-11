@@ -400,6 +400,17 @@ class Ui_Form(object):
         self.horizontalLayout_12.addWidget(self.dockWidget_3)
 
         self.tabWidget.addTab(self.tab_4, "")
+        self.tab_7 = QWidget()
+        self.tab_7.setObjectName(u"tab_7")
+        self.horizontalLayout_14 = QHBoxLayout(self.tab_7)
+        self.horizontalLayout_14.setObjectName(u"horizontalLayout_14")
+        self.webEngineView = QWebEngineView(self.tab_7)
+        self.webEngineView.setObjectName(u"webEngineView")
+        self.webEngineView.setUrl(QUrl(u"about:blank"))
+
+        self.horizontalLayout_14.addWidget(self.webEngineView)
+
+        self.tabWidget.addTab(self.tab_7, "")
 
         self.verticalLayout_5.addWidget(self.tabWidget)
 
@@ -430,7 +441,7 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(4)
         self.tabWidget_2.setCurrentIndex(0)
 
 
@@ -463,5 +474,6 @@ class Ui_Form(object):
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_6), QCoreApplication.translate("Form", u"SPFA(Single-source)", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QCoreApplication.translate("Form", u"ShortestPath", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QCoreApplication.translate("Form", u"PageRank", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_7), QCoreApplication.translate("Form", u"KnowledgeGraph", None))
     # retranslateUi
 

@@ -54,7 +54,7 @@ class Frame(QWidget, Ui_Form):
         self.matrixTable.setStyleSheet(
             "QHeaderView::section {background-color:white; border-color: darkgray;color: black;}")
         self.groupBox.setStyleSheet("QGroupBox:title{color:black;} QGroupBox{border-color:lightgray;}")
-
+        self.webEngineView.setUrl('http://localhost:7474')
         self.bind()
 
     # 绑定函数
