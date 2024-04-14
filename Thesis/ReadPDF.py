@@ -21,7 +21,7 @@ for file_name in pdf_files:
     text = extract_text(pdf_path)
 
     # 查找参考文献部分
-    if '参考文献' in text:
+    if '参考文献' or 'References' in text:
         reference_index = text.find('参考文献')
         references_text = text[reference_index + 4:]  # 从“参考文献”关键词之后开始提取
         references_list = references_text.split('\n')  # 根据换行符分割成列表

@@ -50,5 +50,5 @@ for paper_info in valid_papers_info:
 timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
 # 保存新的 Excel 文件到项目文件的xlsx文件包里
-file_name = f'mapping/论文引用关系_{timestamp}.mapping'
+file_name = f'mapping/论文引用关系_{timestamp}.xlsx'
 wb_new.save(file_name)
