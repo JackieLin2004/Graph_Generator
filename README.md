@@ -13,14 +13,15 @@
 
 ### 分析
 
-- 我们组本项目采用了无向图和有向图两种方式供用户选择，用 `networkx` 和 `matplotlib` 两个库来创建图，同时采用 `xlsxwriter` 
+- 我们组本项目采用了无向图和有向图两种方式供用户选择，用 `networkx` 和 `matplotlib` 两个库来创建图，同时采用 `xlsxwriter`
   将连接矩阵导出为Excel
 
 
 - 同时采用目前最新 `PySide6` 库来创建UI界面，并使用 `qt_material` 中的配置文件来美化界面，使用 `scipy` 库来做改进所支持的结点数
 
 
-- 在解决第二次需求的过程中，处理最短路算法和 `PageRank` 算法，用到 `plotly.graph_objects` 和 `plotly_express` 来分别绘制柱状图和散点图。由于
+- 在解决第二次需求的过程中，处理最短路算法和 `PageRank` 算法，用到 `plotly.graph_objects` 和 `plotly_express`
+  来分别绘制柱状图和散点图。由于
   这两个库生成的图片会自动生成 `html`文件用以展示图片，所以在 `Frame` 的最后调用析构函数来删除冗余的 `html` 文件
 
 ### 环境
@@ -41,14 +42,7 @@
 - `config.txt` 中为本项目需要的所有配置，配置环境时可采用以下命令行安装库
 
 ```
-pip install networkx
-pip install matplotlib
-pip install xlsxwriter
-pip install PySide6
-pip install qt_material
-pip install scipy
-pip install plotly
-pip install plotly_express
+pip install -r config.txt
 ```
 
 - `Frame.py` 为本项目的整体架构文件
@@ -60,7 +54,6 @@ pip install plotly_express
 pyside6-uic generator_ui.ui -o generator_ui.py
 ```
 
-
 - `main.py` 文件运行 `Frame.py` 中的 `run` 函数，以此执行项目
 
 
@@ -70,8 +63,8 @@ pyside6-uic generator_ui.ui -o generator_ui.py
 - `version` 文件夹保存的是上一版本的相关代码
 
 
-- 由于参考代码中生成的图片会覆盖原先生成的图片，所以本项目对这部分进行优化，引入时间 `time` 
-模块，用时间戳命名图片和Excel文件，这样可以保证名字永远唯一而不被覆盖
+- 由于参考代码中生成的图片会覆盖原先生成的图片，所以本项目对这部分进行优化，引入时间 `time`
+  模块，用时间戳命名图片和Excel文件，这样可以保证名字永远唯一而不被覆盖
 
 ### 改进
 
@@ -88,15 +81,31 @@ pyside6-uic generator_ui.ui -o generator_ui.py
 本项目主要包括两个算法，分别是 `最短路算法` 和 `PageRank` 算法
 
 - 对于最短路算法，整体包含两种，分别是 **单源最短路** 和 **多源最短路** ，多源最短路的典型代表是 `Floyd` ，而单源最短路
-的典型代表是 `Dijkstra` 而由于 `Dijkstra` 不能处理负权的情况，所以这里采用了能处理负权的 `Bellman-Ford` 和 `SPFA` 
-算法，其中后者是前者加了队列优化
+  的典型代表是 `Dijkstra` 而由于 `Dijkstra` 不能处理负权的情况，所以这里采用了能处理负权的 `Bellman-Ford` 和 `SPFA`
+  算法，其中后者是前者加了队列优化
 
 
 - 然后对于 `Floyd` ，我们不仅调用了相关库函数，也自己实现了这个算法，并且给出相应运行效率的对比图；而对于单源最短路算法，
-我们也自己实现了 `SPFA` 算法并与库函数的 `Bellman-Ford` 作比较
+  我们也自己实现了 `SPFA` 算法并与库函数的 `Bellman-Ford` 作比较
 
 
 - 最后对于 `PageRank` 算法，我们也同样给出了自己模拟的过程，并与库函数的原生方法做对比
+
+### 关于爬虫
+
+- 大致思路 爬取网页源码 筛选所有章节的跳转链接 依次访问每个链接 得到每篇文章的内容
+
+
+- 实现三个反爬措施
+
+    - 添加 `headers` 字段 模拟浏览器的访问而非编译器的直接访问
+
+    - 添加 `time.sleep(1)`  使每次的访问存在1秒的时间间隔 避免短时间内大量访问
+
+    - 添加 `proxies` 字段 模拟用户IP，避免访问过多次被封
+
+
+- timeout字段 在服务器长时间无应答时主动退出，避免死循环
 
 ### 小组成员
 

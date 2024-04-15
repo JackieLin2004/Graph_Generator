@@ -24,7 +24,10 @@ class Spider:
                           'AppleWebKit/537.36 (KHTML, like Gecko) '
                           'Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.1'
         }
-        page_text = requests.get(url=self.url, headers=self.headers, timeout=10)
+        # headers表示模拟浏览器的行为  proxies表示使用代理IP 即便封IP也不会封本机IP
+        # timeout当网站长时间未响应时自动退出
+        page_text = requests.get(url=self.url, headers=self.headers, timeout=10,
+                                 proxies={'http': 'http://172.16.31.10:', 'hppts': 'http://172.16.31.10:'})
 
         page_text.encoding = 'utf-8'
         page_content = page_text.text
@@ -55,7 +58,8 @@ class Spider:
                 # temp表示该列表中的每一个二元组
                 temp = self.href_chapter[i]
                 url = temp[0]
-                page_text = requests.get(url=url, headers=self.headers, timeout=10)
+                page_text = requests.get(url=url, headers=self.headers, timeout=10,
+                                         proxies={'http': 'http://172.16.31.10:', 'hppts': 'http://172.16.31.10:'})
                 page_text.encoding = 'utf-8'
                 page_content = page_text.text
                 soup = BeautifulSoup(page_content, 'html.parser')
