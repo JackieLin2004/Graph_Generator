@@ -9,3 +9,12 @@ qt_material
 scipy
 plotly
 plotly_express
+py2neo
+requests
+bs4
+openpyxl
+pandas
+pdfplumber
+pdfminer.high_level
+jieba
+wordcloud

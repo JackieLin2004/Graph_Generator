@@ -17,10 +17,12 @@ class KnowledgeGraph:
                 print("当前行数：", reader.line_num, "当前内容：", item)
                 start_node = Node("Person", name=item[0])
                 end_node = Node("Person", name=item[1])
-                relation = Relationship(start_node, item[3], end_node)
+                relation = Relationship(start_node, item[2], end_node)
                 self.graph.merge(start_node, "Person", "name")
                 self.graph.merge(end_node, "Person", "name")
                 self.graph.merge(relation, "Person", "name")
+        # self.graph.run("MATCH (p:Person {name: '贾宝玉'})-[r]-(other) RETURN p, r, other")
+        # self.graph.run("match (n) detach delete n")
 
     def build_paper_knowledge_graph(self):
         self.graph.run("match (n) detach delete n")
