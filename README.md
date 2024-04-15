@@ -163,7 +163,7 @@ pyside6-uic generator_ui.ui -o generator_ui.py
 
 ### 关于词云
 
-- 采用 `jieba` 库进行分词，采用 `wordcloud` 来创建词云
+- 采用 `jieba` 库进行中文分词，采用 `wordcloud` 来创建词云
 
 
 - 根据爬虫爬取的红楼梦全文来统计词频和创建词云
