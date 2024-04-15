@@ -52,7 +52,7 @@ def generate_word_clouds(txt):
     wcloud = wordcloud.WordCloud(font_path=r'../WordClouds/FontStyle.ttf', width=1000, max_words=500, height=1000,
                                  margin=2, background_color='red').generate(txt)
     # 将词云图保存为图片文件
-    wcloud.to_file("HLM_word_cloud.png")
+    wcloud.to_file("HLM_word_cloud1.png")
     # 显示词云图片
     plt.imshow(wcloud)
     plt.show()

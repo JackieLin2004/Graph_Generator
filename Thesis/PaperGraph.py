@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 def generate_paper_graph():
     # 读取生成的论文引用关系 Excel 文件
-    wb = load_workbook('mapping/mapping.xlsx')
+    wb = load_workbook('./Thesis/mapping/mapping.xlsx')
     ws = wb.active
 
     # 创建有向图

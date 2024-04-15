@@ -15,7 +15,7 @@ class WordClouds:
         # 创建一个空字典，用于存储词频统计结果
         counts = {}
         # 列表生成式获取停用词，停用词列表保存在名为'stop_words.txt'的文件中
-        stopwords = [line.strip() for line in open('stop_words.txt', 'r', encoding='utf-8').readlines()]
+        stopwords = [line.strip() for line in open('./WordClouds/stop_words.txt', 'r', encoding='utf-8').readlines()]
 
         # 遍历分词后的结果
         for word in words:
@@ -52,17 +52,17 @@ class WordClouds:
     @staticmethod
     def generate_word_clouds(txt):
         # 生成词云图，指定背景颜色为红色
-        wcloud = wordcloud.WordCloud(font_path=r'FontStyle.ttf', width=1000, max_words=500, height=1000,
-                                     margin=2, background_color='red').generate(txt)
+        wcloud = wordcloud.WordCloud(font_path=r'./WordClouds/FontStyle.ttf', width=640, max_words=200, height=640,
+                                     margin=2, background_color='white').generate(txt)
         # 将词云图保存为图片文件
-        wcloud.to_file("HLM_word_cloud.png")
+        wcloud.to_file("./WordClouds/graphics/HLM_word_cloud.png")
         # 显示词云图片
         plt.imshow(wcloud)
         plt.show()
 
     def run_word_cloud(self):
         # 读取文本文件内容
-        text = open('HLM_FullText.txt', "r", encoding='utf-8').read()
+        text = open('./WordClouds/HLM_FullText.txt', "r", encoding='utf-8').read()
         # text = open(text_file_path, "r", encoding='utf-8').read()
         # 调用count_word_frequency函数获取前20个高频词语
         words_clear = self.count_word_frequency(text, 20)

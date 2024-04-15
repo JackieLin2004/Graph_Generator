@@ -4,7 +4,7 @@ from openpyxl import load_workbook
 
 def build_paper_matrix():
     # 读取生成的论文引用关系 Excel 文件
-    wb = load_workbook('mapping/mapping.xlsx')
+    wb = load_workbook('./Thesis/mapping/mapping.xlsx')
     ws = wb.active
 
     # 提取所有不重复节点

@@ -37,7 +37,7 @@ class Spider:
 
         # 二元组存储每个章节的url,该章节的名字
 
-        # 提取字段中的连接和章节名称,,,
+        # 提取字段中的连接和章节名称
         for item in all_chapters:
             a_tag = item.find('a')
             href = a_tag['href']

@@ -9,7 +9,7 @@ class KnowledgeGraph:
     def build_HLM_knowledge_graph(self):
         self.graph.run("match (n) detach delete n")
         self.graph = Graph('http://localhost:7474', user='neo4j', password='20040304', name="neo4j")
-        with open('HLM.csv', 'r', encoding='utf-8') as file:
+        with open('./KnowledgeGraph/HLM.csv', 'r', encoding='utf-8') as file:
             reader = csv.reader(file)
             for item in reader:
                 if reader.line_num == 1:
@@ -27,10 +27,9 @@ class KnowledgeGraph:
     def build_paper_knowledge_graph(self):
         self.graph.run("match (n) detach delete n")
         self.graph = Graph('http://localhost:7474', user='neo4j', password='20040304', name="neo4j")
-        with open('paper.csv', 'r', encoding='utf-8') as file:
+        with open('./KnowledgeGraph/paper.csv', 'r', encoding='utf-8') as file:
             reader = csv.reader(file)
             for item in reader:
-
                 if reader.line_num == 1:
                     continue
                 print("当前行数：", reader.line_num, "当前内容：", item)

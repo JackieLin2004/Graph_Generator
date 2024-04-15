@@ -2,9 +2,11 @@ import os
 import sys
 import time
 
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import Qt, QUrl, QPropertyAnimation, QThread, Signal
 from PySide6.QtGui import QPixmap, QImage, QGuiApplication
 from PySide6.QtWidgets import QWidget, QApplication, QTableWidgetItem, QHeaderView
+
+import PaperLauncher
 from generator_ui import Ui_Form
 import Kernel.DirectedGraph as DAG
 import Kernel.UndirectedGraph as UDG
@@ -13,13 +15,25 @@ import Kernel.GraphBuffer as GB
 import Kernel.GraphUtils as Utils
 import Kernel.DrawChart as DC
 import Kernel.PageRank as PG
-import Kernel.Algorithms as Algo
+import Kernel.ShortestPath as Algo
+import HLMLauncher
+import multiprocessing
+import Thesis.Matrix as PMat
 from qt_material import apply_stylesheet
 
 
-class Frame(QWidget, Ui_Form):
+class Frame(QWidget, Ui_Form, multiprocessing.Process):
+    glob = Signal(int)
+    globPaper = Signal(int)
+
     def __init__(self):
         super().__init__()
+        self.paperThread = None
+        self.paperLauncher = None
+        self.hlmThread = None
+        self.hlmlauncher = None
+        self.footerAnima = None
+        self.sidebarAnima = None
         self.setupUi(self)
         self.setWindowTitle("Graph Generator")
         self.screen = QGuiApplication.primaryScreen().geometry()
@@ -35,26 +49,49 @@ class Frame(QWidget, Ui_Form):
         self.edgelistframe.setHorizontalHeaderLabels(['u', 'v', 'w'])
         self.PRtable.setColumnCount(2)
         self.PRtable.setHorizontalHeaderLabels(['id', 'PR'])
+        self.PageRankView.setColumnCount(2)
+        self.PageRankView.setHorizontalHeaderLabels(['id', 'PR'])
         self.tableIndex = 0
         self.PR_tableIndex = 0
+        self.PaperPR_tableIndex = 0
         self.view.setAlignment(Qt.AlignCenter)
+        self.relationView.setAlignment(Qt.AlignCenter)
         self.btn_UDG.setChecked(True)
+        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget_2.setCurrentIndex(0)
+        self.PaperTable.setCurrentIndex(0)
+        self.KGtabs.setCurrentIndex(0)
         self.edgelistframe.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.matrixTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.PRtable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.PageRankView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.progressBar.setValue(0)
         self.graph = GB.GraphBuffer()
         self.UDGgen = UDG.UDGgenerator()
         self.DAGgen = DAG.DAGgenerator()
         self.pageR = PG.PageRank()
+        self.HLMprogressbar.setValue(0)
+        self.PaperprogressBar.setValue(0)
+        self.HLMmaskinmask.hide()
+        self.papermaskinmask.hide()
         self.Xwriter = xlsx_writer.XlsxWriter()
+        self.cur = 1
+        self.KGtabs.hide()
+        self.PaperTable.hide()
+        self.footer.setStyleSheet("QWidget{border-top:1px solid gray;}")
+        self.progressBar.setStyleSheet("QProgressBar{border:none;}")
         self.setStyleSheet("QWidget {background-color:white;}")
+        self.bindComboBox()
         self.edgelistframe.setStyleSheet(
             "QHeaderView::section {background-color:white; border-color: darkgray;color: black;}")
         self.matrixTable.setStyleSheet(
             "QHeaderView::section {background-color:white; border-color: darkgray;color: black;}")
+        self.PageRankView.setStyleSheet(
+            "QHeaderView::section {background-color:white; border-color: darkgray;color: black;}")
         self.groupBox.setStyleSheet("QGroupBox:title{color:black;} QGroupBox{border-color:lightgray;}")
-        self.webEngineView.setUrl('http://localhost:7474')
+        self.webEngineView.setUrl('http://localhost:7474/browser')
+        self.PaperKGView.setUrl('http://localhost:7474/browser')
+
         self.bind()
 
     # 绑定函数
@@ -69,6 +106,10 @@ class Frame(QWidget, Ui_Form):
         self.btn_exit.clicked.connect(lambda: self.exit())
         self.btn_runSP.clicked.connect(lambda: self.runSPFA())
         self.btn_nw.clicked.connect(lambda: self.turnNeg())
+        self.btn_activHLM.clicked.connect(lambda: self.activateHLM())
+        self.btn_activPaper.clicked.connect(lambda: self.activatePaper())
+        self.tabWidget.currentChanged['int'].connect(self.sideBarChange)
+        self.btn_search.clicked.connect(lambda: self.showRelationship())
 
     def generate(self):
         self.clearPRTable()
@@ -332,6 +373,197 @@ class Frame(QWidget, Ui_Form):
             os.remove('./temp/UDG_SP.png')
         if os.path.exists('./temp/plotly_bar4.html'):
             os.remove('./temp/plotly_bar4.html')
+        if os.path.exists('./temp/plotly_scatter5.html'):
+            os.remove('./temp/plotly_scatter5.html')
+
+    def sideBarChange(self, index):
+        match index:
+            case 0:
+                self.footerAnim(0)
+                self.sideBarAnim(0)
+                self.cur = 1
+            case 1:
+                self.footerAnim(0)
+                self.sideBarAnim(0)
+                self.cur = 1
+            case 2:
+                self.footerAnim(0)
+                self.sideBarAnim(0)
+                self.cur = 1
+            case 3:
+                self.footerAnim(0)
+                self.sideBarAnim(0)
+                self.cur = 1
+            case 4:
+                self.footerAnim(1)
+                self.sideBarAnim(1)
+                self.cur = 0
+            case 5:
+                self.footerAnim(1)
+                self.sideBarAnim(1)
+                self.cur = 0
+            case _:
+                self.footerAnim(0)
+                self.sideBarAnim(0)
+                self.cur = 1
+
+    def sideBarAnim(self, val):
+        if val == 1:
+            if self.cur == 0:
+                return
+            self.sidebarAnima = QPropertyAnimation(self.sideBar, b"maximumWidth")
+            self.sidebarAnima.setDuration(300)
+            self.sidebarAnima.setStartValue(220)
+            self.sidebarAnima.setEndValue(0)
+            self.sidebarAnima.start()
+        else:
+            if self.cur == 1:
+                return
+            self.sidebarAnima = QPropertyAnimation(self.sideBar, b"maximumWidth")
+            self.sidebarAnima.setDuration(300)
+            self.sidebarAnima.setStartValue(0)
+            self.sidebarAnima.setEndValue(220)
+            self.sidebarAnima.start()
+
+    def footerAnim(self, val):
+        if val == 1:
+            if self.cur == 0:
+                return
+            self.footerAnima = QPropertyAnimation(self.footer, b"maximumHeight")
+            self.footerAnima.setDuration(300)
+            self.footerAnima.setStartValue(42)
+            self.footerAnima.setEndValue(0)
+            self.footerAnima.start()
+        else:
+            if self.cur == 1:
+                return
+            self.footerAnima = QPropertyAnimation(self.footer, b"maximumHeight")
+            self.footerAnima.setDuration(300)
+            self.footerAnima.setStartValue(0)
+            self.footerAnima.setEndValue(42)
+            self.footerAnima.start()
+
+    def activateHLM(self):
+        print("on")
+        self.hlmlauncher = HLMLauncher.HLMLauncher()
+        self.hlmThread = QThread()
+        self.hlmlauncher.progress.connect(self.updateProgress)
+        self.hlmlauncher.complete.connect(self.isComplete)
+        self.glob.connect(self.hlmlauncher.work)
+        self.hlmlauncher.moveToThread(self.hlmThread)
+        self.hlmThread.start()
+        self.btn_activHLM.hide()
+        self.HLMmaskinmask.show()
+        n = 5
+        self.HLMprogressbar.setMaximum(n)
+        self.glob.emit(n)
+
+    def updateProgress(self, v):
+        self.HLMprogressbar.setValue(v)
+        match v:
+            case 1:
+                self.loadingLabel.setText("Loading...: Launching Neo4j")
+            case 2:
+                self.loadingLabel.setText("Loading...: Generating Knowledge Graph")
+            case 3:
+                self.loadingLabel.setText("Loading...: Generating WordClouds")
+            case 4:
+                self.loadingLabel.setText("Parsing...")
+            case _:
+                self.loadingLabel.setText("")
+
+    def isComplete(self, v):
+        self.PaperMask.show()
+        self.PaperTable.hide()
+        self.papermaskinmask.hide()
+        self.btn_activPaper.show()
+        self.HLMprogressbar.setValue(v)
+        self.HLmask.hide()
+        self.KGtabs.show()
+        self.showWC()
+        self.hlmThread.quit()
+        self.hlmThread.wait()
+
+    def showWC(self):
+        img = QImage(f"./WordClouds/graphics/HLM_word_cloud.png")
+        pixmap = QPixmap.fromImage(img)
+        self.wcLabel.setPixmap(pixmap)
+
+    def activatePaper(self):
+        self.paperLauncher = PaperLauncher.PaperLauncher()
+        self.paperThread = QThread()
+        self.paperLauncher.progress.connect(self.updatePaperProgress)
+        self.paperLauncher.complete.connect(self.isPaperComplete)
+        self.globPaper.connect(self.paperLauncher.work)
+        self.paperLauncher.moveToThread(self.paperThread)
+        self.paperThread.start()
+        self.btn_activPaper.hide()
+        self.papermaskinmask.show()
+        n = 5
+        self.PaperprogressBar.setMaximum(n)
+        self.globPaper.emit(n)
+
+    def updatePaperProgress(self, v):
+        self.PaperprogressBar.setValue(v)
+        match v:
+            case 1:
+                self.Paperlabel.setText("Loading...: Launching Neo4j")
+            case 2:
+                self.Paperlabel.setText("Loading...: Generating Knowledge Graph")
+            case 3:
+                self.Paperlabel.setText("Loading...: Parsing PageRank")
+            case 4:
+                self.Paperlabel.setText("Loading...: Drawing Chart")
+            case _:
+                self.Paperlabel.setText("")
+
+    def isPaperComplete(self, v):
+        self.HLmask.show()
+        self.KGtabs.hide()
+        self.btn_activHLM.show()
+        self.HLMmaskinmask.hide()
+        self.PaperprogressBar.setValue(v)
+        self.PaperScatterView.load(
+            QUrl.fromLocalFile(os.path.abspath(f'./temp/plotly_scatter5.html')))
+        self.paperPRShow()
+        self.PaperMask.hide()
+        self.PaperTable.show()
+        self.paperThread.quit()
+        self.paperThread.wait()
+
+    def paperPRShow(self):
+        mat = PMat.build_paper_matrix()
+        rpv = self.pageR.run_Implemented_PageRank_algorithm(mat)
+        val = []
+        dirname = os.listdir('./Thesis/resources')
+        data = []
+        for filename in dirname:
+            data.append(filename[:len(filename) - 4])
+        finaldata = []
+        for i in range(len(rpv)):
+            finaldata.append(data[rpv[i][1] - 1])
+        for i in range(len(rpv)):
+            val.append(rpv[i][2])
+        for i in range(len(rpv)):
+            self.PageRankView.insertRow(int(self.PageRankView.rowCount()))
+            self.PageRankView.setItem(self.PaperPR_tableIndex, 0, QTableWidgetItem(str(finaldata[i])))
+            self.PageRankView.setItem(self.PaperPR_tableIndex, 1, QTableWidgetItem(str(rpv[i][2])))
+            self.PaperPR_tableIndex += 1
+
+    def bindComboBox(self):
+        dirname = os.listdir('./CharactersImages')
+        for filename in dirname:
+            self.comboBox.addItem(filename[:len(filename)-4])
+
+    def showRelationship(self):
+        ind = self.comboBox.currentIndex()
+        dirname = os.listdir('./CharactersImages')
+        lis = []
+        for filename in dirname:
+            lis.append(filename)
+        img = QImage(f"./CharactersImages/{lis[ind]}")
+        pixmap = QPixmap.fromImage(img)
+        self.relationView.setPixmap(pixmap)
 
 
 def run():
