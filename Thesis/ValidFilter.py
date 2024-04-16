@@ -1,3 +1,7 @@
+# ##############################################################
+#                   构建论文引用的映射关系Excel表
+# ##############################################################
+
 from openpyxl import load_workbook, Workbook
 from datetime import datetime
 import os

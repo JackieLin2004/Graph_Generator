@@ -1,3 +1,7 @@
+# ##############################################################
+#                     构建论文引用的有向图
+# ##############################################################
+
 import networkx as nx
 from openpyxl import load_workbook
 import matplotlib.pyplot as plt

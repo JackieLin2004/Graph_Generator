@@ -1,3 +1,7 @@
+# ##############################################################
+#                       整体架构文件！！！
+# ##############################################################
+
 import os
 import sys
 import time
@@ -484,6 +488,7 @@ class Frame(QWidget, Ui_Form, multiprocessing.Process):
         self.hlmThread.quit()
         self.hlmThread.wait()
 
+    # 展示词云
     def showWC(self):
         img = QImage(f"./WordClouds/graphics/HLM_word_cloud.png")
         pixmap = QPixmap.fromImage(img)
@@ -531,6 +536,7 @@ class Frame(QWidget, Ui_Form, multiprocessing.Process):
         self.paperThread.quit()
         self.paperThread.wait()
 
+    # 展示论文的PageRank算法结果
     def paperPRShow(self):
         mat = PMat.build_paper_matrix()
         rpv = self.pageR.run_Implemented_PageRank_algorithm(mat)
@@ -553,8 +559,9 @@ class Frame(QWidget, Ui_Form, multiprocessing.Process):
     def bindComboBox(self):
         dirname = os.listdir('./CharactersImages')
         for filename in dirname:
-            self.comboBox.addItem(filename[:len(filename)-4])
+            self.comboBox.addItem(filename[:len(filename) - 4])
 
+    # 显示重要人物关系图谱
     def showRelationship(self):
         ind = self.comboBox.currentIndex()
         dirname = os.listdir('./CharactersImages')
